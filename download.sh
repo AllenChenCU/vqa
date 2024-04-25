@@ -1,0 +1,56 @@
+# create folders
+mkdir data
+mkdir data/Images
+mkdir data/Images/abstract_v002
+mkdir data/Images/abstract_v002/scene_img_abstract_v002_train2015
+mkdir data/Images/abstract_v002/scene_img_abstract_v002_val2015
+mkdir data/Images/abstract_v002/scene_img_abstract_v002_test2015
+mkdir data/Annotations
+mkdir data/Questions
+mkdir data/Questions/Questions_Train_abstract_v002
+mkdir data/Questions/Questions_Val_abstract_v002
+mkdir data/QUestions/Questions_Test_abstract_v002
+
+# annotations
+cd data/Annotations
+wget https://s3.amazonaws.com/cvmlp/vqa/abstract_v002/vqa/Annotations_Train_abstract_v002.zip
+unzip Annotations_Train_abstract_v002.zip
+rm Annotations_Train_abstract_v002.zip
+wget https://s3.amazonaws.com/cvmlp/vqa/abstract_v002/vqa/Annotations_Val_abstract_v002.zip
+unzip Annotations_Val_abstract_v002.zip
+rm Annotations_Val_abstract_v002.zip
+cd ../../
+
+# questions
+cd data/Questions/Questions_Train_abstract_v002
+wget https://s3.amazonaws.com/cvmlp/vqa/abstract_v002/vqa/Questions_Train_abstract_v002.zip
+unzip Questions_Train_abstract_v002.zip
+rm Questions_Train_abstract_v002.zip
+cd ../../../
+cd data/Questions/Questions_Val_abstract_v002
+wget https://s3.amazonaws.com/cvmlp/vqa/abstract_v002/vqa/Questions_Val_abstract_v002.zip
+unzip Questions_Val_abstract_v002.zip
+rm Questions_Val_abstract_v002.zip
+cd ../../../
+cd data/Questions/Questions_Test_abstract_v002
+wget https://s3.amazonaws.com/cvmlp/vqa/abstract_v002/vqa/Questions_Test_abstract_v002.zip
+unzip Questions_Test_abstract_v002.zip
+rm Questions_Test_abstract_v002.zip
+cd ../../../
+
+# images
+cd data/Images/abstract_v002/scene_img_abstract_v002_train2015
+wget https://s3.amazonaws.com/cvmlp/vqa/abstract_v002/scene_img/scene_img_abstract_v002_train2015.zip
+unzip scene_img_abstract_v002_train2015.zip
+rm scene_img_abstract_v002_train2015.zip
+cd ../../../../
+cd data/Images/abstract_v002/scene_img_abstract_v002_val2015
+wget https://s3.amazonaws.com/cvmlp/vqa/abstract_v002/scene_img/scene_img_abstract_v002_val2015.zip
+unzip scene_img_abstract_v002_val2015.zip
+rm scene_img_abstract_v002_val2015.zip
+cd ../../../../
+cd data/Images/abstract_v002/scene_img_abstract_v002_test2015
+wget https://s3.amazonaws.com/cvmlp/vqa/abstract_v002/scene_img/scene_img_abstract_v002_test2015.zip
+unzip scene_img_abstract_v002_test2015.zip
+rm scene_img_abstract_v002_test2015.zip
+cd ../../../../
