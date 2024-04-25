@@ -1,8 +1,8 @@
 # Paths
 TASK = "MultipleChoice"
 DATASET = "abstract_v002"
-#DATA_DIR = "toy"
-DATA_DIR = "data"
+DATA_DIR = "toy"
+#DATA_DIR = "data"
 ANNOTATIONS_TRAIN_FILEPATH = f"{DATA_DIR}/Annotations/{DATASET}_train2015_annotations.json"
 ANNOTATIONS_VAL_FILEPATH = f"{DATA_DIR}/Annotations/{DATASET}_val2015_annotations.json"
 IMAGES_TRAIN_DIR = f"{DATA_DIR}/Images/{DATASET}/scene_img_{DATASET}_train2015/"
@@ -24,9 +24,9 @@ CENTRAL_FRACTION = 0.875
 CUDA = True
 
 # Training config
-EPOCHS = 2
+EPOCHS = 10
 BATCH_SIZE = 128
 INITIAL_LR = 1e-3
 LR_HALFLIFE = 50000
-DATA_WORKERS = 1
+DATA_WORKERS = 4
 MAX_ANSWERS = 3000 # change this for multiple choice later

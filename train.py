@@ -41,6 +41,7 @@ class Trainer:
         
         for epoch in tqdm(range(config.EPOCHS)):
             save_filename = f"{save_filename_prefix}_{epoch}.pth"
+            #save_filename = f"{save_filename_prefix}.pth"
             save_filepath = os.path.join(save_dir, save_filename)
             _ = self._run_epoch(trainloader, epoch=epoch, train=True)
             preds, overall_accs, pos_accs, idxs, q_ids = self._run_epoch(valloader, epoch=epoch, train=False)
