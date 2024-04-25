@@ -76,7 +76,7 @@ def preprocess_images(net, dataloader, split="train", device="cpu"):
                 out = net(imgs)
 
                 j = i + imgs.size(0)
-                features[i:j, :, :, :] = out.data.cpu().numpy().astype('float16')
+                features[i:j, :, :, :] = out.cpu().numpy().astype('float16')
                 image_ids[i:j] = ids.numpy().astype('int32')
                 i = j
 
