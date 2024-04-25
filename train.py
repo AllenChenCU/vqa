@@ -153,7 +153,7 @@ def main():
     time_now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     target_filename_prefix = f"{args['name']}_{time_now}"
     target_dir = "logs"
-    device = utils.set_device(mps=False, cuda=False)
+    device = utils.set_device(mps=False, cuda=config.CUDA)
     if device == "cuda":
         cudnn.benchmark = True
 

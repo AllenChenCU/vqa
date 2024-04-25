@@ -82,7 +82,7 @@ def preprocess_images(net, dataloader, split="train", device="cpu"):
 
 
 def main():
-    device = utils.set_device(mps=False, cuda=False)
+    device = utils.set_device(mps=False, cuda=config.CUDA)
     if device == "cuda":
         cudnn.benchmark = True
     net = Net().to(device)
