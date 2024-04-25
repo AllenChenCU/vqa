@@ -1,8 +1,8 @@
 # Paths
 TASK = "MultipleChoice"
 DATASET = "abstract_v002"
-DATA_DIR = "toy"
-#DATA_DIR = "data"
+#DATA_DIR = "toy"
+DATA_DIR = "data"
 ANNOTATIONS_TRAIN_FILEPATH = f"{DATA_DIR}/Annotations/{DATASET}_train2015_annotations.json"
 ANNOTATIONS_VAL_FILEPATH = f"{DATA_DIR}/Annotations/{DATASET}_val2015_annotations.json"
 IMAGES_TRAIN_DIR = f"{DATA_DIR}/Images/{DATASET}/scene_img_{DATASET}_train2015/"
