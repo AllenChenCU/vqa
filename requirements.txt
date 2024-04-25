@@ -7,3 +7,5 @@ torchvision
 h5py
 tqdm
 transformers
+fire
+google-cloud-compute
