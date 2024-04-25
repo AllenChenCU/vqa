@@ -25,8 +25,8 @@ CUDA = True
 
 # Training config
 EPOCHS = 10
-BATCH_SIZE = 128
-INITIAL_LR = 1e-3
+BATCH_SIZE = 64
+INITIAL_LR = 1e-2
 LR_HALFLIFE = 50000
 DATA_WORKERS = 4
 MAX_ANSWERS = 3000 # change this for multiple choice later
