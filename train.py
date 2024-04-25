@@ -44,6 +44,8 @@ class Trainer:
             #save_filename = f"{save_filename_prefix}.pth"
             save_filepath = os.path.join(save_dir, save_filename)
             _ = self._run_epoch(trainloader, epoch=epoch, train=True)
+            if self.device == "cuda":
+                torch.cuda.empty_cache()
             preds, overall_accs, pos_accs, idxs, q_ids = self._run_epoch(valloader, epoch=epoch, train=False)
 
             results = {
