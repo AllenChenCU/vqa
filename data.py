@@ -70,6 +70,7 @@ class VQA(data.Dataset):
             answers_json = json.load(fd)
         
         self.seed = 17
+        random.seed(self.seed)
         
         # q, c and a
         self.qca = self._create_qca_dataset(questions_json, answers_json)
@@ -140,7 +141,7 @@ class VQA(data.Dataset):
             # random sample 2 neg examples without replacement
             neg_indices = list(range(len(question_dict["multiple_choices"])))
             neg_indices.pop(pos_index)
-            neg_indices = random.sample(neg_indices, k=2, random=self.seed)
+            neg_indices = random.sample(neg_indices, k=2)
             all_indices = [pos_index] + neg_indices
 
             for choice_index in all_indices:
