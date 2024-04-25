@@ -69,14 +69,14 @@ class VQA(data.Dataset):
         with open(answers_path, 'r') as fd:
             answers_json = json.load(fd)
         
+        self.seed = 17
+        
         # q, c and a
         self.qca = self._create_qca_dataset(questions_json, answers_json)
 
         # v
         self.image_features_path = image_features_path
         self.image_id_to_index = self._create_image_id_to_index()
-
-        self.seed = 17
 
     @property
     def max_question_length(self):

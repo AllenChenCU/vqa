@@ -9,7 +9,7 @@ mkdir data/Annotations
 mkdir data/Questions
 mkdir data/Questions/Questions_Train_abstract_v002
 mkdir data/Questions/Questions_Val_abstract_v002
-mkdir data/QUestions/Questions_Test_abstract_v002
+mkdir data/Questions/Questions_Test_abstract_v002
 
 # annotations
 cd data/Annotations
