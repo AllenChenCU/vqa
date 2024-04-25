@@ -136,6 +136,8 @@ class Trainer:
             pos_accs.append(pos_acc.view(-1))
             idxs.append(idx.view(-1).clone())
             q_ids.append(q_id.view(-1).clone())
+            if self.device == "cuda":
+                torch.cuda.empty_cache()
         
         preds = torch.cat(preds, dim=0)
         overall_accs = torch.cat(overall_accs, dim=0)
