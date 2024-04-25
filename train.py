@@ -99,8 +99,8 @@ class Trainer:
             v = v.to(self.device)
             for k, _ in wrapped_input.items():
                 wrapped_input[k] = wrapped_input[k].to(self.device)
-            output = self.net(v, wrapped_input).view(-1)
-            a = a.type(torch.FloatTensor).to(self.device)
+            output = self.net(v, wrapped_input).cpu().view(-1)
+            a = a.type(torch.FloatTensor)
             self.criterion.weight = a * self.class_weights["correct"] + (1-a)*self.class_weights["incorrect"]
             loss = self.criterion(output, a)
 
