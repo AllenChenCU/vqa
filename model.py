@@ -71,6 +71,8 @@ class Attention(nn.Module):
         """
         n, c = feature_vector.size()
         spatial_size = feature_map.dim() - 2
+        print(f"feature_vector: {feature_vector.size()}")
+        print(f"feature_map: {feature_map.size()}")
         tiled = feature_vector.view(n, c, *([1] * spatial_size)).expand_as(feature_map)
         return tiled
 
