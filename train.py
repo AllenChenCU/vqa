@@ -213,7 +213,10 @@ def main():
 
     # model
     pretrained_model = BertModel.from_pretrained("bert-base-uncased")
-    net = model.SimpleNet(pretrained_model).to(device)
+    if config.CUDA and torch.cuda.device_count() > 1:
+        net = nn.DataParallel(model.SimpleNet(pretrained_model)).to(device)
+    else:
+        net = model.SimpleNet(pretrained_model).to(device)
     optimizer = optim.Adam(net.parameters(), lr=0.001)
     criterion = nn.BCELoss()
     tracker = utils.Tracker()
