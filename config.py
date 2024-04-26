@@ -21,9 +21,9 @@ IMAGE_SIZE = 448 # scale shorter end of image to this size
 OUTPUT_SIZE = IMAGE_SIZE // 32  # size of the feature maps after processing through a network
 OUTPUT_FEATURES = 2048 # number of feature maps
 CENTRAL_FRACTION = 0.875
-CUDA = True
 
 # Training config
+CUDA = True
 EPOCHS = 10
 BATCH_SIZE = 32
 INITIAL_LR = 1e-2

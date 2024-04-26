@@ -46,7 +46,7 @@ class Trainer:
             _ = self._run_epoch(trainloader, epoch=epoch, train=True)
             if self.device == "cuda":
                 torch.cuda.empty_cache()
-            preds, overall_accs, pos_accs, idxs, q_ids = self._run_epoch(valloader, epoch=epoch, train=False)
+            y_preds, y_true, overall_accs, pos_accs, idxs, q_ids = self._run_epoch(valloader, epoch=epoch, train=False)
 
             results = {
                 'filename': save_filepath, 
@@ -54,7 +54,8 @@ class Trainer:
                 'config': self.config_as_dict,
                 'weights': self.net.state_dict(), 
                 'eval': {
-                    'preds': preds,  # predictions in the validation dataset
+                    'y_preds': y_preds,  # predictions in the validation dataset
+                    'y_true': y_true, 
                     'overall_accs': overall_accs, # accuracies of mini-batches
                     'pos_accs': pos_accs, 
                     'idx': idxs,        # indices in the validation dataset
@@ -80,7 +81,8 @@ class Trainer:
         overall_acc_tracker = self.tracker.track(f"{prefix}_overall_acc", tracker_class(**tracker_params))
         pos_acc_tracker = self.tracker.track(f"{prefix}_pos_acc", tracker_class(**tracker_params))
 
-        preds = [] # all prediction outputs
+        y_preds = [] # all prediction outputs
+        y_true = []
         overall_accs = []    # accuracies of mini-batches
         pos_accs = []
         idxs = []    # indices of the validation dataset
@@ -129,11 +131,12 @@ class Trainer:
             overall_acc_tracker.append(overall_acc)
             pos_acc_tracker.append(pos_acc)
             tq.set_postfix(
-                loss="{:.4f}".format(loss), 
-                overall_acc="{:.4f}".format(overall_acc),
-                pos_acc="{:.4f}".format(pos_acc),
+                loss="{:.4f}".format(loss_tracker.mean.value), 
+                overall_acc="{:.4f}".format(overall_acc_tracker.mean.value),
+                pos_acc="{:.4f}".format(pos_acc_tracker.mean.value),
             )
-            preds.append(output.view(-1))
+            y_preds.append(output)
+            y_true.append(a)
             overall_accs.append(overall_acc.view(-1))
             pos_accs.append(pos_acc.view(-1))
             idxs.append(idx.view(-1).clone())
@@ -141,12 +144,13 @@ class Trainer:
             if self.device == "cuda":
                 torch.cuda.empty_cache()
         
-        preds = torch.cat(preds, dim=0)
+        y_preds = torch.cat(y_preds, dim=0)
+        y_true = torch.cat(y_true, dim=0)
         overall_accs = torch.cat(overall_accs, dim=0)
         pos_accs = torch.cat(pos_accs, dim=0)
         idxs = torch.cat(idxs, dim=0)
         q_ids = torch.cat(q_ids, dim=0)
-        return preds, overall_accs, pos_accs, idxs, q_ids
+        return y_preds, y_true, overall_accs, pos_accs, idxs, q_ids
 
 
 def main():

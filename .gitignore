@@ -3,3 +3,4 @@ __pycache__/
 *.h5
 venv/
 data/
+logs/
