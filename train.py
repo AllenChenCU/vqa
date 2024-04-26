@@ -160,8 +160,10 @@ class Trainer:
             )
 
             v = v.to(self.device)
+            print(f"v shape: {v.size()}")
             for k, _ in wrapped_input.items():
                 wrapped_input[k] = wrapped_input[k].to(self.device)
+                print(f"wrapped_input {k} shape: {wrapped_input[k].size()}")
             output = self.net(v, wrapped_input).cpu().view(-1)
             a = a.type(torch.FloatTensor)
             self.criterion.weight = a * self.class_weights["correct"] + (1-a)*self.class_weights["incorrect"]
