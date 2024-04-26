@@ -32,6 +32,12 @@ class SimpleNet(nn.Module):
         )
         self.sigmoid = nn.Sigmoid()
 
+        for m in self.modules():
+            if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
+                nn.init.xavier_uniform_(m.weight)
+                if m.bias is not None:
+                    m.bias.data.zero_()
+
     def forward(self, v: torch.Tensor, wrapped_text_input: dict[str, torch.Tensor]) -> torch.Tensor:
         hidden_state = self.pretrained_model(**wrapped_text_input)
         token_hidden_state, q = hidden_state[0], hidden_state[1] # q = cls hidden state
