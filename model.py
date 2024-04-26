@@ -44,6 +44,8 @@ class SimpleNet(nn.Module):
 
         # l2 normalization
         v = v / (v.norm(p=2, dim=1, keepdim=True).expand_as(v) + 1e-8)
+        print(f"v shape: {v.size()}")
+        print(f"q shape: {q.size()}")
         w = self.attention(v, q) # (batch_size, glimpses, 14, 14)
         v = apply_attention(v, w) # (batch_size, 4096)
 
@@ -79,6 +81,8 @@ class Attention(nn.Module):
     def forward(self, v, q):
         v = self.v_conv(self.drop(v)) # (batch_size, mid_features, 14, 14)
         q = self.q_lin(self.drop(q)) # (batch_size, mid_features)
+        print(f"v shape in attention: {v.size()}")
+        print(f"q shape in attention: {q.size()}")
         q = Attention.tile_2d_over_nd(q, v)
         x = self.relu(v + q) # (batch_size, mid_features, 14, 14)
         x = self.x_conv(self.drop(x)) # (batch_size, glimpses, 14, 14)
