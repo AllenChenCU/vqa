@@ -96,11 +96,17 @@ class Trainer:
                     padding=True, 
                     return_tensors="pt"
                 )
-
+                input_ids = wrapped_input["input_ids"]
+                token_type_ids = wrapped_input["token_type_ids"]
+                attention_mask = wrapped_input["attention_mask"]
+                input_ids = input_ids.to(self.device)
+                token_type_ids = token_type_ids.to(self.device)
+                attention_mask = attention_mask.to(self.device)
                 v = v.to(self.device)
-                for k, _ in wrapped_input.items():
-                    wrapped_input[k] = wrapped_input[k].to(self.device)
-                output = self.net(v, wrapped_input).cpu().view(-1)
+                
+                # for k, _ in wrapped_input.items():
+                #     wrapped_input[k] = wrapped_input[k].to(self.device)
+                output = self.net(v, input_ids, token_type_ids, attention_mask).cpu().view(-1)
                 a = a.type(torch.FloatTensor)
                 self.criterion.weight = a * self.class_weights["correct"] + (1-a)*self.class_weights["incorrect"]
                 loss = self.criterion(output, a)
@@ -158,11 +164,17 @@ class Trainer:
                 padding=True, 
                 return_tensors="pt"
             )
-
+            input_ids = wrapped_input["input_ids"]
+            token_type_ids = wrapped_input["token_type_ids"]
+            attention_mask = wrapped_input["attention_mask"]
+            input_ids = input_ids.to(self.device)
+            token_type_ids = token_type_ids.to(self.device)
+            attention_mask = attention_mask.to(self.device)
             v = v.to(self.device)
-            for k, _ in wrapped_input.items():
-                wrapped_input[k] = wrapped_input[k].to(self.device)
-            output = self.net(v, wrapped_input).cpu().view(-1)
+
+            # for k, _ in wrapped_input.items():
+            #     wrapped_input[k] = wrapped_input[k].to(self.device)
+            output = self.net(v, input_ids, token_type_ids, attention_mask).cpu().view(-1)
             a = a.type(torch.FloatTensor)
             self.criterion.weight = a * self.class_weights["correct"] + (1-a)*self.class_weights["incorrect"]
             loss = self.criterion(output, a)

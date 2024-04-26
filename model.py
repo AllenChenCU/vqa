@@ -38,8 +38,12 @@ class SimpleNet(nn.Module):
                 if m.bias is not None:
                     m.bias.data.zero_()
 
-    def forward(self, v: torch.Tensor, wrapped_text_input: dict[str, torch.Tensor]) -> torch.Tensor:
-        hidden_state = self.pretrained_model(**wrapped_text_input)
+    def forward(self, v: torch.Tensor, input_ids: torch.Tensor, token_type_ids: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
+        hidden_state = self.pretrained_model(
+            input_ids=input_ids, 
+            token_type_ids=token_type_ids, 
+            attention_mask=attention_mask, 
+        )
         token_hidden_state, q = hidden_state[0], hidden_state[1] # q = cls hidden state
 
         # l2 normalization
