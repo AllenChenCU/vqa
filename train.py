@@ -43,10 +43,12 @@ class Trainer:
             save_filename = f"{save_filename_prefix}_{epoch}.pth"
             #save_filename = f"{save_filename_prefix}.pth"
             save_filepath = os.path.join(save_dir, save_filename)
-            _ = self._run_epoch(trainloader, epoch=epoch, train=True)
-            if self.device == "cuda":
-                torch.cuda.empty_cache()
-            y_preds, y_true, overall_accs, pos_accs, idxs, q_ids = self._run_epoch(valloader, epoch=epoch, train=False)
+
+            # Train
+            self._train_one_epoch(trainloader, epoch=epoch)
+
+            # Eval
+            y_preds, y_true, overall_accs, pos_accs, idxs, q_ids = self._eval_one_epoch(valloader, epoch=epoch)
 
             results = {
                 'filename': save_filepath, 
@@ -64,17 +66,11 @@ class Trainer:
             }
             torch.save(results, save_filepath)
 
-    def _run_epoch(self, dataloader, epoch, train=False):
-        if train:
-            self.net.train()
-            tracker_class = self.tracker.MovingMeanMonitor
-            tracker_params = {'momentum': 0.99}
-            prefix = "train"
-        else:
-            self.net.eval()
-            tracker_class = self.tracker.MeanMonitor
-            tracker_params = {} 
-            prefix = "val"
+    def _eval_one_epoch(self, dataloader, epoch):
+        self.net.eval()
+        tracker_class = self.tracker.MeanMonitor
+        tracker_params = {} 
+        prefix = "val"
         
         tq = tqdm(dataloader, desc=f"{prefix} Epoch: {epoch}", ncols=0)
         loss_tracker = self.tracker.track(f"{prefix}_loss", tracker_class(**tracker_params))
@@ -88,7 +84,70 @@ class Trainer:
         idxs = []    # indices of the validation dataset
         q_ids = []  # question_ids of the validation dataset
 
-        for v, q, c, a, idx, q_id in tq:
+        with torch.no_grad():
+            for v, q, c, a, idx, q_id in tq:
+
+                # forward
+                wrapped_input = self.tokenizer(
+                    text=q, 
+                    text_pair=c, 
+                    add_special_tokens=True, 
+                    truncation=False, 
+                    padding=True, 
+                    return_tensors="pt"
+                )
+
+                v = v.to(self.device)
+                for k, _ in wrapped_input.items():
+                    wrapped_input[k] = wrapped_input[k].to(self.device)
+                output = self.net(v, wrapped_input).cpu().view(-1)
+                a = a.type(torch.FloatTensor)
+                self.criterion.weight = a * self.class_weights["correct"] + (1-a)*self.class_weights["incorrect"]
+                loss = self.criterion(output, a)
+
+                # calc acc
+                overall_acc = (output.round() == a).float().mean()
+
+                agree = (a == output.round()).type(torch.IntTensor)
+                indices_agree = torch.nonzero(a).view(-1) # convert mask to indices
+                pos_agree = agree[indices_agree]     # accuracy for positive examples only
+                pos_acc = pos_agree.float().mean()
+
+                loss_tracker.append(loss.detach().item())
+                overall_acc_tracker.append(overall_acc)
+                pos_acc_tracker.append(pos_acc)
+                tq.set_postfix(
+                    loss="{:.4f}".format(loss_tracker.mean.value), 
+                    overall_acc="{:.4f}".format(overall_acc_tracker.mean.value),
+                    pos_acc="{:.4f}".format(pos_acc_tracker.mean.value),
+                )
+                y_preds.append(output)
+                y_true.append(a)
+                overall_accs.append(overall_acc.view(-1))
+                pos_accs.append(pos_acc.view(-1))
+                idxs.append(idx.view(-1).clone())
+                q_ids.append(q_id.view(-1).clone())
+        
+        y_preds = torch.cat(y_preds, dim=0)
+        y_true = torch.cat(y_true, dim=0)
+        overall_accs = torch.cat(overall_accs, dim=0)
+        pos_accs = torch.cat(pos_accs, dim=0)
+        idxs = torch.cat(idxs, dim=0)
+        q_ids = torch.cat(q_ids, dim=0)
+        return y_preds, y_true, overall_accs, pos_accs, idxs, q_ids
+    
+    def _train_one_epoch(self, dataloader, epoch):
+        self.net.train()
+        tracker_class = self.tracker.MovingMeanMonitor
+        tracker_params = {'momentum': 0.99}
+        prefix = "train"
+        
+        tq = tqdm(dataloader, desc=f"{prefix} Epoch: {epoch}", ncols=0)
+        loss_tracker = self.tracker.track(f"{prefix}_loss", tracker_class(**tracker_params))
+        overall_acc_tracker = self.tracker.track(f"{prefix}_overall_acc", tracker_class(**tracker_params))
+        pos_acc_tracker = self.tracker.track(f"{prefix}_pos_acc", tracker_class(**tracker_params))
+
+        for v, q, c, a, _, _ in tq:
 
             # forward
             wrapped_input = self.tokenizer(
@@ -116,16 +175,14 @@ class Trainer:
             pos_agree = agree[indices_agree]     # accuracy for positive examples only
             pos_acc = pos_agree.float().mean()
 
+            # update learning rate
+            self.update_learning_rate()
+            self.iterations += 1
 
-            if train:
-                # update learning rate
-                self.update_learning_rate()
-                self.iterations += 1
-
-                # backward
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
+            # backward
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
 
             loss_tracker.append(loss.detach().item())
             overall_acc_tracker.append(overall_acc)
@@ -135,22 +192,6 @@ class Trainer:
                 overall_acc="{:.4f}".format(overall_acc_tracker.mean.value),
                 pos_acc="{:.4f}".format(pos_acc_tracker.mean.value),
             )
-            y_preds.append(output)
-            y_true.append(a)
-            overall_accs.append(overall_acc.view(-1))
-            pos_accs.append(pos_acc.view(-1))
-            idxs.append(idx.view(-1).clone())
-            q_ids.append(q_id.view(-1).clone())
-            if self.device == "cuda":
-                torch.cuda.empty_cache()
-        
-        y_preds = torch.cat(y_preds, dim=0)
-        y_true = torch.cat(y_true, dim=0)
-        overall_accs = torch.cat(overall_accs, dim=0)
-        pos_accs = torch.cat(pos_accs, dim=0)
-        idxs = torch.cat(idxs, dim=0)
-        q_ids = torch.cat(q_ids, dim=0)
-        return y_preds, y_true, overall_accs, pos_accs, idxs, q_ids
 
 
 def main():
