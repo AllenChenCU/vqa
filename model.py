@@ -23,6 +23,7 @@ class SimpleNet(nn.Module):
         )
 
         v_size = self.glimpses*config.OUTPUT_FEATURES
+        #v_size = 2048 * 14 * 14
         q_size = self.pretrained_model.config.hidden_size
         self.classifier = Classifier(
             in_features=q_size + v_size, 
@@ -47,14 +48,20 @@ class SimpleNet(nn.Module):
         token_hidden_state, q = hidden_state[0], hidden_state[1] # q = cls hidden state
 
         # l2 normalization
+        q = q / (q.norm(p=2, dim=1, keepdim=True).expand_as(q) + 1e-8)
         v = v / (v.norm(p=2, dim=1, keepdim=True).expand_as(v) + 1e-8)
+        #print(f"Before attention: {v}")
+        #print(f"q: {q}")
         w = self.attention(v, q) # (batch_size, glimpses, 14, 14)
         v = apply_attention(v, w) # (batch_size, 4096)
-
+        #print(f"After attention: {v}")
         #v = torch.flatten(v, start_dim=1)
         combined = torch.cat([v, q], dim=1)
+        #print(f"Combined attention: {combined}")
         logits = self.classifier(combined)
+        #print(f"logits: {logits}")
         probs = self.sigmoid(logits)
+        #print(f"probs: {probs}")
         return probs
 
 

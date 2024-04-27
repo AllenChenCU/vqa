@@ -24,9 +24,9 @@ CENTRAL_FRACTION = 0.875
 
 # Training config
 CUDA = True
-EPOCHS = 50
+EPOCHS = 10
 BATCH_SIZE = 128
-INITIAL_LR = 1e-4
+INITIAL_LR = 1e-5
 LR_HALFLIFE = 50000
 DATA_WORKERS = 4
 MAX_ANSWERS = 3000 # change this for multiple choice later
