@@ -22,12 +22,24 @@ class SimpleNet(nn.Module):
             drop=0.5, 
         )
 
-        v_size = self.glimpses*config.OUTPUT_FEATURES
+        #v_size = self.glimpses*config.OUTPUT_FEATURES
         #v_size = 2048 * 14 * 14
+        v_size = 25 * 14 * 14
         q_size = self.pretrained_model.config.hidden_size
-        self.classifier = Classifier(
+
+        # classfier for attention
+        # self.classifier = Classifier(
+        #     in_features=q_size + v_size, 
+        #     mid_features=1024, 
+        #     out_features=1, 
+        #     drop=0.5, 
+        # )
+
+        # classifier for vanilla mlp
+        self.conv1 = nn.Conv2d(2048, 25, 1, bias=False)
+        self.classifier = DeepClassifier(
             in_features=q_size + v_size, 
-            mid_features=1024, 
+            mid_features=[1024, 512, 256], 
             out_features=1, 
             drop=0.5, 
         )
@@ -50,9 +62,10 @@ class SimpleNet(nn.Module):
         # l2 normalization
         q = q / (q.norm(p=2, dim=1, keepdim=True).expand_as(q) + 1e-8)
         v = v / (v.norm(p=2, dim=1, keepdim=True).expand_as(v) + 1e-8)
-        w = self.attention(v, q) # (batch_size, glimpses, 14, 14)
-        v = apply_attention(v, w) # (batch_size, 4096)
-        #v = torch.flatten(v, start_dim=1)
+        #w = self.attention(v, q) # (batch_size, glimpses, 14, 14)
+        #v = apply_attention(v, w) # (batch_size, 4096)
+        v = self.conv1(v)
+        v = torch.flatten(v, start_dim=1)
         combined = torch.cat([v, q], dim=1)
         logits = self.classifier(combined)
         probs = self.sigmoid(logits)
@@ -96,6 +109,22 @@ class Classifier(nn.Sequential):
         self.add_module('relu', nn.ReLU())
         self.add_module('drop2', nn.Dropout(drop))
         self.add_module('fc2', nn.Linear(mid_features, out_features))
+
+
+class DeepClassifier(nn.Sequential):
+    def __init__(self, in_features, mid_features, out_features, drop=0.0):
+        super(DeepClassifier, self).__init__()
+        self.add_module('drop1', nn.Dropout(drop))
+        self.add_module('fc1', nn.Linear(in_features, mid_features[0]))
+        self.add_module('relu', nn.ReLU())
+        self.add_module('drop2', nn.Dropout(drop))
+        self.add_module('fc2', nn.Linear(mid_features[0], mid_features[1]))
+        self.add_module('relu', nn.ReLU())
+        self.add_module('drop3', nn.Dropout(drop))
+        self.add_module('fc3', nn.Linear(mid_features[1], mid_features[2]))
+        self.add_module('relu', nn.ReLU())
+        self.add_module('drop4', nn.Dropout(drop))
+        self.add_module('fc4', nn.Linear(mid_features[2], out_features))
 
 
 def apply_attention(input, attention):
