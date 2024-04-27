@@ -50,18 +50,12 @@ class SimpleNet(nn.Module):
         # l2 normalization
         q = q / (q.norm(p=2, dim=1, keepdim=True).expand_as(q) + 1e-8)
         v = v / (v.norm(p=2, dim=1, keepdim=True).expand_as(v) + 1e-8)
-        #print(f"Before attention: {v}")
-        #print(f"q: {q}")
         w = self.attention(v, q) # (batch_size, glimpses, 14, 14)
         v = apply_attention(v, w) # (batch_size, 4096)
-        #print(f"After attention: {v}")
         #v = torch.flatten(v, start_dim=1)
         combined = torch.cat([v, q], dim=1)
-        #print(f"Combined attention: {combined}")
         logits = self.classifier(combined)
-        #print(f"logits: {logits}")
         probs = self.sigmoid(logits)
-        #print(f"probs: {probs}")
         return probs
 
 

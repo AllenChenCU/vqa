@@ -45,10 +45,10 @@ class Trainer:
             save_filepath = os.path.join(save_dir, save_filename)
 
             # Train
-            self._train_one_epoch(trainloader, epoch=epoch)
+            losses_train, overall_accs_train, pos_accs_train = self._train_one_epoch(trainloader, epoch=epoch)
 
             # Eval
-            y_preds, y_true, overall_accs, pos_accs, idxs, q_ids = self._eval_one_epoch(valloader, epoch=epoch)
+            y_preds_val, y_true_val, losses_val, overall_accs_val, pos_accs_val, idxs_val, q_ids_val = self._eval_one_epoch(valloader, epoch=epoch)
 
             results = {
                 'filename': save_filepath, 
@@ -56,12 +56,18 @@ class Trainer:
                 'config': self.config_as_dict,
                 'weights': self.net.state_dict(), 
                 'eval': {
-                    'y_preds': y_preds,  # predictions in the validation dataset
-                    'y_true': y_true, 
-                    'overall_accs': overall_accs, # accuracies of mini-batches
-                    'pos_accs': pos_accs, 
-                    'idx': idxs,        # indices in the validation dataset
-                    'q_ids': q_ids,     # question ids in the validation dataset
+                    # val data
+                    'y_preds_val': y_preds_val,  # predictions in the validation dataset
+                    'y_true_val': y_true_val, 
+                    'losses_val': losses_val, 
+                    'overall_accs_val': overall_accs_val, # accuracies of mini-batches
+                    'pos_accs_val': pos_accs_val, 
+                    'idx_val': idxs_val,        # indices in the validation dataset
+                    'q_ids_val': q_ids_val,     # question ids in the validation dataset
+                    # train data
+                    'losses_train': losses_train, 
+                    'overall_accs_train': overall_accs_train, 
+                    'pos_accs_train': pos_accs_train, 
                 }, 
             }
             torch.save(results, save_filepath)
@@ -79,6 +85,7 @@ class Trainer:
 
         y_preds = [] # all prediction outputs
         y_true = []
+        losses = []
         overall_accs = []    # accuracies of mini-batches
         pos_accs = []
         idxs = []    # indices of the validation dataset
@@ -103,7 +110,7 @@ class Trainer:
                 token_type_ids = token_type_ids.to(self.device)
                 attention_mask = attention_mask.to(self.device)
                 v = v.to(self.device)
-                
+
                 # for k, _ in wrapped_input.items():
                 #     wrapped_input[k] = wrapped_input[k].to(self.device)
                 output = self.net(v, input_ids, token_type_ids, attention_mask).cpu().view(-1)
@@ -112,13 +119,14 @@ class Trainer:
                 loss = self.criterion(output, a)
 
                 # calc acc
-                overall_acc = (output.round() == a).float().mean()
+                overall_acc = (output.round() == a).float().mean().detach().item()
 
                 agree = (a == output.round()).type(torch.IntTensor)
                 indices_agree = torch.nonzero(a).view(-1) # convert mask to indices
                 pos_agree = agree[indices_agree]     # accuracy for positive examples only
-                pos_acc = pos_agree.float().mean()
+                pos_acc = pos_agree.float().mean().detach().item()
 
+                # data for displaying
                 loss_tracker.append(loss.detach().item())
                 overall_acc_tracker.append(overall_acc)
                 pos_acc_tracker.append(pos_acc)
@@ -127,20 +135,21 @@ class Trainer:
                     overall_acc="{:.4f}".format(overall_acc_tracker.mean.value),
                     pos_acc="{:.4f}".format(pos_acc_tracker.mean.value),
                 )
+
+                # data for saving
                 y_preds.append(output)
                 y_true.append(a)
-                overall_accs.append(overall_acc.view(-1))
-                pos_accs.append(pos_acc.view(-1))
+                losses.append(loss.detach().item())
+                overall_accs.append(overall_acc)
+                pos_accs.append(pos_acc)
                 idxs.append(idx.view(-1).clone())
                 q_ids.append(q_id.view(-1).clone())
         
         y_preds = torch.cat(y_preds, dim=0)
         y_true = torch.cat(y_true, dim=0)
-        overall_accs = torch.cat(overall_accs, dim=0)
-        pos_accs = torch.cat(pos_accs, dim=0)
         idxs = torch.cat(idxs, dim=0)
         q_ids = torch.cat(q_ids, dim=0)
-        return y_preds, y_true, overall_accs, pos_accs, idxs, q_ids
+        return y_preds, y_true, losses, overall_accs, pos_accs, idxs, q_ids
     
     def _train_one_epoch(self, dataloader, epoch):
         self.net.train()
@@ -152,6 +161,10 @@ class Trainer:
         loss_tracker = self.tracker.track(f"{prefix}_loss", tracker_class(**tracker_params))
         overall_acc_tracker = self.tracker.track(f"{prefix}_overall_acc", tracker_class(**tracker_params))
         pos_acc_tracker = self.tracker.track(f"{prefix}_pos_acc", tracker_class(**tracker_params))
+
+        losses = []
+        overall_accs = []
+        pos_accs = []
 
         for v, q, c, a, _, _ in tq:
 
@@ -180,12 +193,12 @@ class Trainer:
             loss = self.criterion(output, a)
 
             # calc acc
-            overall_acc = (output.round() == a).float().mean()
+            overall_acc = (output.round() == a).float().mean().detach().item()
 
             agree = (a == output.round()).type(torch.IntTensor)
             indices_agree = torch.nonzero(a).view(-1) # convert mask to indices
             pos_agree = agree[indices_agree]     # accuracy for positive examples only
-            pos_acc = pos_agree.float().mean()
+            pos_acc = pos_agree.float().mean().detach().item()
 
             # update learning rate
             self.update_learning_rate()
@@ -196,6 +209,7 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
 
+            # data for displaying
             loss_tracker.append(loss.detach().item())
             overall_acc_tracker.append(overall_acc)
             pos_acc_tracker.append(pos_acc)
@@ -204,6 +218,13 @@ class Trainer:
                 overall_acc="{:.4f}".format(overall_acc_tracker.mean.value),
                 pos_acc="{:.4f}".format(pos_acc_tracker.mean.value),
             )
+
+            # data for saving
+            losses.append(loss.detach().item())
+            overall_accs.append(overall_acc)
+            pos_accs.append(pos_acc)
+        
+        return losses, overall_accs, pos_accs
 
 
 def main():
