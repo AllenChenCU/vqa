@@ -34,21 +34,21 @@ class SimpleNet(nn.Module):
         q_size = self.pretrained_model.config.hidden_size
 
         # classfier for attention
-        # self.classifier = Classifier(
-        #     in_features=q_size + v_size, 
-        #     mid_features=1024, 
-        #     out_features=1, 
-        #     drop=0.5, 
-        # )
-
-        # classifier for vanilla mlp
-        #self.conv1 = nn.Conv2d(2048, 25, 1, bias=False)
-        self.classifier = DeepClassifier(
-            in_features=q_size, # + v_size, 
-            mid_features=[1024, 512, 256], 
+        self.classifier = Classifier(
+            in_features=q_size, #+ v_size, 
+            mid_features=1024, 
             out_features=1, 
             drop=0.5, 
         )
+
+        # classifier for vanilla mlp
+        #self.conv1 = nn.Conv2d(2048, 25, 1, bias=False)
+        # self.classifier = DeepClassifier(
+        #     in_features=q_size, # + v_size, 
+        #     mid_features=[1024, 512, 256], 
+        #     out_features=1, 
+        #     drop=0.5, 
+        # )
         self.sigmoid = nn.Sigmoid()
 
         for m in self.modules():

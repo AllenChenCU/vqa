@@ -1,10 +1,3 @@
-"""
-Reference: 
-
-[1] https://github.com/Cyanogenoid/pytorch-vqa/blob/master/data.py
-
-"""
-
 import json
 import os
 import os.path
