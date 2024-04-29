@@ -96,8 +96,8 @@ class Trainer:
 
                 # forward
                 wrapped_input = self.tokenizer(
-                    text=q, 
-                    text_pair=c, 
+                    text=c, #q, 
+                    #text_pair=c, 
                     add_special_tokens=True, 
                     truncation=False, 
                     padding=True, 
