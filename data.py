@@ -143,6 +143,7 @@ class VQA(data.Dataset):
                     "question": VQA._preprocess_question(question_dict["question"]), 
                     "choice": VQA._preprocess_choices(choice), 
                     "answer": 1 if choice == answer else 0, 
+                    "answer_str": answer, 
                     "id": id, 
                     "image_id": question_dict["image_id"], 
                     "question_id": question_dict["question_id"], 

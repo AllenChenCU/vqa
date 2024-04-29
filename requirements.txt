@@ -9,3 +9,4 @@ tqdm
 transformers
 fire
 google-cloud-compute
+scikit-learn

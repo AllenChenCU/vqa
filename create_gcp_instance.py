@@ -157,7 +157,7 @@ def create_all_vm(
 
 def main(
     gpu_type: str = "nvidia-tesla-t4",  # nvidia-tesla-t4, nvidia-l4, nvidia-tesla-v100, nvidia-tesla-p4
-    gpu_count: int = 1,
+    gpu_count: int = 4,
     machine_type: str = "n1-standard-8",  # n1-standard-8,  g2-standard-8, n1-standard-8, n1-standard-8
     disk_source_image: str = "projects/ml-images/global/images/c0-deeplearning-common-cu121-v20240306-debian-11",
     disk_size: int = 350,
