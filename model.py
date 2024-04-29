@@ -33,16 +33,13 @@ class SimpleNet(nn.Module):
         v_size = 25 * 14 * 14
         q_size = self.pretrained_model.config.hidden_size
 
-        # classfier for attention
+        self.conv1 = nn.Conv2d(2048, 25, 1, bias=False)
         self.classifier = Classifier(
-            in_features=q_size, #+ v_size, 
+            in_features=q_size + v_size, 
             mid_features=1024, 
             out_features=1, 
             drop=0.5, 
         )
-
-        # classifier for vanilla mlp
-        #self.conv1 = nn.Conv2d(2048, 25, 1, bias=False)
         # self.classifier = DeepClassifier(
         #     in_features=q_size, # + v_size, 
         #     mid_features=[1024, 512, 256], 
@@ -67,13 +64,13 @@ class SimpleNet(nn.Module):
 
         # l2 normalization
         q = q / (q.norm(p=2, dim=1, keepdim=True).expand_as(q) + 1e-8)
-        #v = v / (v.norm(p=2, dim=1, keepdim=True).expand_as(v) + 1e-8)
+        v = v / (v.norm(p=2, dim=1, keepdim=True).expand_as(v) + 1e-8)
         #w = self.attention(v, q) # (batch_size, glimpses, 14, 14)
         #v = apply_attention(v, w) # (batch_size, 4096)
-        #v = self.conv1(v)
-        #v = torch.flatten(v, start_dim=1)
-        #combined = torch.cat([v, q], dim=1)
-        logits = self.classifier(q)
+        v = self.conv1(v)
+        v = torch.flatten(v, start_dim=1)
+        combined = torch.cat([v, q], dim=1)
+        logits = self.classifier(combined)
         probs = self.sigmoid(logits)
         return probs
 

@@ -96,8 +96,8 @@ class Trainer:
 
                 # forward
                 wrapped_input = self.tokenizer(
-                    text=c, #q, 
-                    #text_pair=c, 
+                    text=q, 
+                    text_pair=c, 
                     add_special_tokens=True, 
                     truncation=False, 
                     padding=True, 
@@ -170,8 +170,8 @@ class Trainer:
 
             # forward
             wrapped_input = self.tokenizer(
-                text=c, #q, 
-                #text_pair=c, 
+                text=q, 
+                text_pair=c, 
                 add_special_tokens=True, 
                 truncation=False, 
                 padding=True, 
