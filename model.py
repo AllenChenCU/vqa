@@ -32,10 +32,12 @@ class SimpleNet(nn.Module):
         #v_size = 2048 * 14 * 14
         v_size = 25 * 14 * 14
         q_size = self.pretrained_model.config.hidden_size
-
+        print(f"q_size: {q_size}")
+        print(f"v_size: {v_size}")
+        self.fc1 = nn.Linear(q_size, v_size, bias=False)
         self.conv1 = nn.Conv2d(2048, 25, 1, bias=False)
         self.classifier = Classifier(
-            in_features=q_size + v_size, 
+            in_features=v_size, #q_size + v_size, 
             mid_features=1024, 
             out_features=1, 
             drop=0.5, 
@@ -67,9 +69,15 @@ class SimpleNet(nn.Module):
         v = v / (v.norm(p=2, dim=1, keepdim=True).expand_as(v) + 1e-8)
         #w = self.attention(v, q) # (batch_size, glimpses, 14, 14)
         #v = apply_attention(v, w) # (batch_size, 4096)
+        q = self.fc1(q)
         v = self.conv1(v)
         v = torch.flatten(v, start_dim=1)
-        combined = torch.cat([v, q], dim=1)
+
+        # concatenate
+        #combined = torch.cat([v, q], dim=1)
+        # element-wise multiplication
+        combined = torch.mul(q, v)
+
         logits = self.classifier(combined)
         probs = self.sigmoid(logits)
         return probs
