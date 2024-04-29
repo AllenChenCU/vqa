@@ -78,7 +78,8 @@ class SimpleNet(nn.Module):
 
         ### element-wise multiplication
         q = self.fc1(q)
-        combined = torch.mul(q, v)
+        #combined = torch.mul(q, v)
+        combined = torch.add(q, v)
 
         logits = self.classifier(combined)
         probs = self.sigmoid(logits)
