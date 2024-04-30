@@ -1,6 +1,6 @@
 # COMS4732 Computer Vision II Final Project
 
-Project Title: Exploratory models for Visual Question Answering
+Project Title: Revisiting Visual Question Answering in a Toy World
 
 UNI #: atc2160
 
