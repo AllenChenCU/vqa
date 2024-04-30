@@ -26,4 +26,4 @@ python3 train.py --name <run_id>
 ```
 
 # Results
-- see results.ipynb
+- see validation metrics, loss curves and learning curves at results.ipynb
